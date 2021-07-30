@@ -392,6 +392,7 @@ abstract class FunctionProvider {
         columnsAndValues: List<Pair<Column<*>, Any?>>,
         limit: Int?,
         where: Op<Boolean>?,
+        comment: String?,
         transaction: Transaction
     ): String = with(QueryBuilder(true)) {
         +"UPDATE "
@@ -407,6 +408,7 @@ abstract class FunctionProvider {
             +it
         }
         limit?.let { +" LIMIT $it" }
+        comment?.let { +" /* $it */ " }
         toString()
     }
 
@@ -424,6 +426,7 @@ abstract class FunctionProvider {
         columnsAndValues: List<Pair<Column<*>, Any?>>,
         limit: Int?,
         where: Op<Boolean>?,
+        comment: String?,
         transaction: Transaction
     ): String = transaction.throwUnsupportedException("UPDATE with a join clause is unsupported")
 

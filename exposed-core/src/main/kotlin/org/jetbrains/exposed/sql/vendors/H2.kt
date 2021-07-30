@@ -59,6 +59,7 @@ internal object H2FunctionProvider : FunctionProvider() {
         columnsAndValues: List<Pair<Column<*>, Any?>>,
         limit: Int?,
         where: Op<Boolean>?,
+        comment: String?,
         transaction: Transaction
     ): String = with(QueryBuilder(true)) {
         if (limit != null) {
@@ -93,6 +94,7 @@ internal object H2FunctionProvider : FunctionProvider() {
             + " WHERE "
             +it
         }
+        comment?.let { +" /* $it */ " }
         toString()
     }
 

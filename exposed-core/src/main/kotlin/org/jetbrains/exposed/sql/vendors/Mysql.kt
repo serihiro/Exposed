@@ -92,6 +92,7 @@ internal open class MysqlFunctionProvider : FunctionProvider() {
         columnsAndValues: List<Pair<Column<*>, Any?>>,
         limit: Int?,
         where: Op<Boolean>?,
+        comment: String?,
         transaction: Transaction
     ): String = with(QueryBuilder(true)) {
         +"UPDATE "
@@ -107,6 +108,7 @@ internal open class MysqlFunctionProvider : FunctionProvider() {
             +it
         }
         limit?.let { +" LIMIT $it" }
+        comment?.let { +" /* $it */ " }
         toString()
     }
 }

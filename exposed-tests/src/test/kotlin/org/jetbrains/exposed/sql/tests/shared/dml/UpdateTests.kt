@@ -100,4 +100,22 @@ class UpdateTests : DatabaseTestsBase() {
             }
         }
     }
+
+    @Test
+    fun testUpdateWithSqlComment() {
+        withCitiesAndUsers { _, users, _ ->
+            val alexId = "alex"
+            val alexName = users.slice(users.name).select { users.id.eq(alexId) }.first()[users.name]
+            assertEquals("Alex", alexName)
+
+            val newName = "Alexey"
+            users.update({ users.id.eq(alexId) }) {
+                it[users.name] = newName
+                it.sqlComment = "THIS IS A SQL COMMENT 1."
+            }
+
+            val alexNewName = users.slice(users.name).select { users.id.eq(alexId) }.first()[users.name]
+            assertEquals(newName, alexNewName)
+        }
+    }
 }

@@ -128,9 +128,10 @@ internal object OracleFunctionProvider : FunctionProvider() {
         columnsAndValues: List<Pair<Column<*>, Any?>>,
         limit: Int?,
         where: Op<Boolean>?,
+        comment: String?,
         transaction: Transaction
     ): String {
-        val def = super.update(target, columnsAndValues, null, where, transaction)
+        val def = super.update(target, columnsAndValues, null, where, comment, transaction)
         return when {
             limit != null && where != null -> "$def AND ROWNUM <= $limit"
             limit != null -> "$def WHERE ROWNUM <= $limit"
@@ -143,6 +144,7 @@ internal object OracleFunctionProvider : FunctionProvider() {
         columnsAndValues: List<Pair<Column<*>, Any?>>,
         limit: Int?,
         where: Op<Boolean>?,
+        comment: String?,
         transaction: Transaction
     ): String = with(QueryBuilder(true)) {
         columnsAndValues.map { it.first.table }.distinct().singleOrNull()
@@ -174,6 +176,7 @@ internal object OracleFunctionProvider : FunctionProvider() {
         limit?.let {
             "WHERE ROWNUM <= $it"
         }
+        comment?.let { +" /* $it */ " }
 
         toString()
     }

@@ -81,8 +81,8 @@ internal object SQLServerFunctionProvider : FunctionProvider() {
         append("DATEPART(MINUTE, ", expr, ")")
     }
 
-    override fun update(target: Table, columnsAndValues: List<Pair<Column<*>, Any?>>, limit: Int?, where: Op<Boolean>?, transaction: Transaction): String {
-        val def = super.update(target, columnsAndValues, null, where, transaction)
+    override fun update(target: Table, columnsAndValues: List<Pair<Column<*>, Any?>>, limit: Int?, where: Op<Boolean>?, comment: String?, transaction: Transaction): String {
+        val def = super.update(target, columnsAndValues, null, where, comment, transaction)
         return if (limit != null) def.replaceFirst("UPDATE", "UPDATE TOP($limit)") else def
     }
 
@@ -91,6 +91,7 @@ internal object SQLServerFunctionProvider : FunctionProvider() {
         columnsAndValues: List<Pair<Column<*>, Any?>>,
         limit: Int?,
         where: Op<Boolean>?,
+        comment: String?,
         transaction: Transaction
     ): String = with(QueryBuilder(true)) {
         val tableToUpdate = columnsAndValues.map { it.first.table }.distinct().singleOrNull()
@@ -126,6 +127,7 @@ internal object SQLServerFunctionProvider : FunctionProvider() {
             +it
         }
         limit?.let { +" LIMIT $it" }
+        comment?.let { +" /* $it */ " }
         toString()
     }
 

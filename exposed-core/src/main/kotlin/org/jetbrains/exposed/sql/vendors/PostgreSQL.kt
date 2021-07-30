@@ -126,12 +126,13 @@ internal object PostgreSQLFunctionProvider : FunctionProvider() {
         columnsAndValues: List<Pair<Column<*>, Any?>>,
         limit: Int?,
         where: Op<Boolean>?,
+        comment: String?,
         transaction: Transaction
     ): String {
         if (limit != null) {
             transaction.throwUnsupportedException("PostgreSQL doesn't support LIMIT in UPDATE clause.")
         }
-        return super.update(target, columnsAndValues, limit, where, transaction)
+        return super.update(target, columnsAndValues, limit, where, comment, transaction)
     }
 
     override fun update(
@@ -139,6 +140,7 @@ internal object PostgreSQLFunctionProvider : FunctionProvider() {
         columnsAndValues: List<Pair<Column<*>, Any?>>,
         limit: Int?,
         where: Op<Boolean>?,
+        comment: String?,
         transaction: Transaction
     ): String = with(QueryBuilder(true)) {
         if (limit != null) {
@@ -172,6 +174,7 @@ internal object PostgreSQLFunctionProvider : FunctionProvider() {
             +" AND "
             +it
         }
+        comment?.let { +" /* $it */ " }
         toString()
     }
 

@@ -15,8 +15,8 @@ open class UpdateStatement(val targetsSet: ColumnSet, val limit: Int?, val where
 
     override fun prepareSQL(transaction: Transaction): String {
         return when (targetsSet) {
-            is Table -> transaction.db.dialect.functionProvider.update(targetsSet, firstDataSet, limit, where, transaction)
-            is Join -> transaction.db.dialect.functionProvider.update(targetsSet, firstDataSet, limit, where, transaction)
+            is Table -> transaction.db.dialect.functionProvider.update(targetsSet, firstDataSet, limit, where, sqlComment, transaction)
+            is Join -> transaction.db.dialect.functionProvider.update(targetsSet, firstDataSet, limit, where, sqlComment, transaction)
             else -> transaction.throwUnsupportedException("UPDATE with ${targetsSet::class.simpleName} unsupported")
         }
     }

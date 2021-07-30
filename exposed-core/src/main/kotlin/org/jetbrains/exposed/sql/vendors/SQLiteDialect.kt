@@ -108,12 +108,13 @@ internal object SQLiteFunctionProvider : FunctionProvider() {
         columnsAndValues: List<Pair<Column<*>, Any?>>,
         limit: Int?,
         where: Op<Boolean>?,
+        comment: String?,
         transaction: Transaction
     ): String {
         if (!ENABLE_UPDATE_DELETE_LIMIT && limit != null) {
             transaction.throwUnsupportedException("SQLite doesn't support LIMIT in UPDATE clause.")
         }
-        return super.update(target, columnsAndValues, limit, where, transaction)
+        return super.update(target, columnsAndValues, limit, where, comment, transaction)
     }
 
     override fun delete(
