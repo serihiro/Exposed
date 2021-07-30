@@ -1,7 +1,20 @@
 package org.jetbrains.exposed.sql.vendors
 
 import org.jetbrains.exposed.exceptions.throwUnsupportedException
-import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.Column
+import org.jetbrains.exposed.sql.Expression
+import org.jetbrains.exposed.sql.GroupConcat
+import org.jetbrains.exposed.sql.Join
+import org.jetbrains.exposed.sql.JoinType
+import org.jetbrains.exposed.sql.Op
+import org.jetbrains.exposed.sql.QueryBuilder
+import org.jetbrains.exposed.sql.Schema
+import org.jetbrains.exposed.sql.Sequence
+import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.sql.Transaction
+import org.jetbrains.exposed.sql.append
+import org.jetbrains.exposed.sql.appendTo
+import org.jetbrains.exposed.sql.exposedLogger
 import org.jetbrains.exposed.sql.transactions.TransactionManager
 import java.util.*
 
@@ -96,10 +109,16 @@ internal object PostgreSQLFunctionProvider : FunctionProvider() {
         table: Table,
         columns: List<Column<*>>,
         expr: String,
+        comment: String?,
         transaction: Transaction
     ): String {
-        val def = super.insert(false, table, columns, expr, transaction)
-        return if (ignore) "$def $onConflictIgnore" else def
+        return if (ignore) {
+            var tmp = "${super.insert(false, table, columns, expr, null, transaction)} $onConflictIgnore"
+            comment?.let { tmp += " /* $it */ " }
+            tmp
+        } else {
+            super.insert(false, table, columns, expr, comment, transaction)
+        }
     }
 
     override fun update(
@@ -150,7 +169,7 @@ internal object PostgreSQLFunctionProvider : FunctionProvider() {
             it.appendConditions(this)
         }
         where?.let {
-            + " AND "
+            +" AND "
             +it
         }
         toString()
@@ -159,25 +178,33 @@ internal object PostgreSQLFunctionProvider : FunctionProvider() {
     override fun replace(
         table: Table,
         data: List<Pair<Column<*>, Any?>>,
+        comment: String?,
         transaction: Transaction
     ): String {
         val builder = QueryBuilder(true)
         val sql = if (data.isEmpty()) {
             ""
         } else {
-            data.appendTo(builder, prefix = "VALUES (", postfix = ")") { (col, value) -> registerArgument(col, value) }.toString()
+            data.appendTo(builder, prefix = "VALUES (", postfix = ")") { (col, value) -> registerArgument(col, value) }
+                .toString()
         }
 
         val columns = data.map { it.first }
 
-        val def = super.insert(false, table, columns, sql, transaction)
+        val def = super.insert(false, table, columns, sql, comment, transaction)
 
         val uniqueCols = table.primaryKey?.columns
         if (uniqueCols.isNullOrEmpty()) {
             transaction.throwUnsupportedException("PostgreSQL replace table must supply at least one primary key.")
         }
         val conflictKey = uniqueCols.joinToString { transaction.identity(it) }
-        return def + "ON CONFLICT ($conflictKey) DO UPDATE SET " + columns.joinToString { "${transaction.identity(it)}=EXCLUDED.${transaction.identity(it)}" }
+        return def + "ON CONFLICT ($conflictKey) DO UPDATE SET " + columns.joinToString {
+            "${transaction.identity(it)}=EXCLUDED.${
+                transaction.identity(
+                    it
+                )
+            }"
+        }
     }
 
     override fun delete(

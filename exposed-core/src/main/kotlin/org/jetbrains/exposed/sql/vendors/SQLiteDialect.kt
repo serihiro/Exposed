@@ -96,9 +96,10 @@ internal object SQLiteFunctionProvider : FunctionProvider() {
         table: Table,
         columns: List<Column<*>>,
         expr: String,
+        comment: String?,
         transaction: Transaction
     ): String {
-        val def = super.insert(false, table, columns, expr, transaction)
+        val def = super.insert(false, table, columns, expr, comment, transaction)
         return if (ignore) def.replaceFirst("INSERT", "INSERT OR IGNORE") else def
     }
 

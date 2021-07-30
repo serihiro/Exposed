@@ -32,6 +32,7 @@ internal object H2FunctionProvider : FunctionProvider() {
         table: Table,
         columns: List<Column<*>>,
         expr: String,
+        comment: String?,
         transaction: Transaction
     ): String {
         val uniqueIdxCols = table.indices.filter { it.unique }.flatMap { it.columns.toList() }
@@ -41,13 +42,15 @@ internal object H2FunctionProvider : FunctionProvider() {
         return when {
             // INSERT IGNORE support added in H2 version 1.4.197 (2018-03-18)
             ignore && uniqueCols.isNotEmpty() && transaction.isMySQLMode && dbReleaseDate(transaction) < borderDate -> {
-                val def = super.insert(false, table, columns, expr, transaction)
-                def + " ON DUPLICATE KEY UPDATE " + uniqueCols.joinToString { "${transaction.identity(it)}=VALUES(${transaction.identity(it)})" }
+                var def = super.insert(false, table, columns, expr, null, transaction)
+                def += " ON DUPLICATE KEY UPDATE " + uniqueCols.joinToString { "${transaction.identity(it)}=VALUES(${transaction.identity(it)})" }
+                comment?.let { def += " /* $it */ " }
+                def
             }
             ignore && uniqueCols.isNotEmpty() && transaction.isMySQLMode -> {
-                super.insert(false, table, columns, expr, transaction).replace("INSERT", "INSERT IGNORE")
+                super.insert(false, table, columns, expr, comment, transaction).replace("INSERT", "INSERT IGNORE")
             }
-            else -> super.insert(ignore, table, columns, expr, transaction)
+            else -> super.insert(ignore, table, columns, expr, comment, transaction)
         }
     }
 
@@ -96,6 +99,7 @@ internal object H2FunctionProvider : FunctionProvider() {
     override fun replace(
         table: Table,
         data: List<Pair<Column<*>, Any?>>,
+        comment: String?,
         transaction: Transaction
     ): String {
         if (data.isEmpty()) {
@@ -108,7 +112,7 @@ internal object H2FunctionProvider : FunctionProvider() {
 
         val sql = data.appendTo(builder, prefix = "VALUES (", postfix = ")") { (col, value) -> registerArgument(col, value) }.toString()
 
-        return super.insert(false, table, columns, sql, transaction).replaceFirst("INSERT", "MERGE")
+        return super.insert(false, table, columns, sql, comment, transaction).replaceFirst("INSERT", "MERGE")
     }
 }
 

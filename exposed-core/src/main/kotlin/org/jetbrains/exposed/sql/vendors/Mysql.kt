@@ -59,7 +59,7 @@ internal open class MysqlFunctionProvider : FunctionProvider() {
         }
     }
 
-    override fun replace(table: Table, data: List<Pair<Column<*>, Any?>>, transaction: Transaction): String {
+    override fun replace(table: Table, data: List<Pair<Column<*>, Any?>>, comment: String?, transaction: Transaction): String {
         val builder = QueryBuilder(true)
         val columns = data.joinToString { transaction.identity(it.first) }
         val values = builder.apply { data.appendTo { registerArgument(it.first.columnType, it.second) } }.toString()
@@ -77,8 +77,8 @@ internal open class MysqlFunctionProvider : FunctionProvider() {
 
     override val DEFAULT_VALUE_EXPRESSION: String = "() VALUES ()"
 
-    override fun insert(ignore: Boolean, table: Table, columns: List<Column<*>>, expr: String, transaction: Transaction): String {
-        val def = super.insert(false, table, columns, expr, transaction)
+    override fun insert(ignore: Boolean, table: Table, columns: List<Column<*>>, expr: String, comment: String?, transaction: Transaction): String {
+        val def = super.insert(false, table, columns, expr, comment, transaction)
         return if (ignore) def.replaceFirst("INSERT", "INSERT IGNORE") else def
     }
 

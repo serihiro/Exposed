@@ -352,6 +352,7 @@ abstract class FunctionProvider {
         table: Table,
         columns: List<Column<*>>,
         expr: String,
+        comment: String?,
         transaction: Transaction
     ): String {
         if (ignore) {
@@ -372,7 +373,9 @@ abstract class FunctionProvider {
         }
         val columnsExpr = columnsToInsert.takeIf { it.isNotEmpty() }?.joinToString(prefix = "(", postfix = ")") { transaction.identity(it) } ?: ""
 
-        return "INSERT INTO ${transaction.identity(table)} $columnsExpr $valuesExpr"
+        var def = "INSERT INTO ${transaction.identity(table)} $columnsExpr $valuesExpr"
+        comment?.let { def += " /* $it */ " }
+        return def
     }
 
     /**
@@ -435,6 +438,7 @@ abstract class FunctionProvider {
     open fun replace(
         table: Table,
         data: List<Pair<Column<*>, Any?>>,
+        comment: String?,
         transaction: Transaction
     ): String = transaction.throwUnsupportedException("There's no generic SQL for REPLACE. There must be vendor specific implementation.")
 

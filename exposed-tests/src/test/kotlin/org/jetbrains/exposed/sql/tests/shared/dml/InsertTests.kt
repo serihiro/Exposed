@@ -133,6 +133,36 @@ class InsertTests : DatabaseTestsBase() {
     }
 
     @Test
+    fun testInsertAndGetIdWithSqlComment() {
+        val idTable = object : IntIdTable("tmp") {
+            val name = varchar("foo", 10).uniqueIndex()
+        }
+
+        withTables(idTable) {
+            idTable.insertAndGetId {
+                it[idTable.name] = "1"
+                it.sqlComment = "THIS IS A SQL COMMENT 1."
+            }
+
+            assertEquals(1L, idTable.selectAll().count())
+
+            idTable.insertAndGetId {
+                it[idTable.name] = "2"
+                it.sqlComment = "THIS IS A SQL COMMENT 2."
+            }
+
+            assertEquals(2L, idTable.selectAll().count())
+
+            assertFailAndRollback("Unique constraint") {
+                idTable.insertAndGetId {
+                    it[idTable.name] = "2"
+                    it.sqlComment = "THIS IS A SQL COMMENT 2."
+                }
+            }
+        }
+    }
+
+    @Test
     fun testBatchInsert01() {
         withCitiesAndUsers { cities, users, _ ->
             val cityNames = listOf("Paris", "Moscow", "Helsinki")

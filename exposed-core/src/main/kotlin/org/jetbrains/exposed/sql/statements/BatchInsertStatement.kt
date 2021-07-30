@@ -110,7 +110,7 @@ open class SQLServerBatchInsertStatement(table: Table, ignore: Boolean = false, 
                 }
             }.toString()
         }
-        return transaction.db.dialect.functionProvider.insert(isIgnore, table, values.firstOrNull()?.map { it.first }.orEmpty(), sql, transaction)
+        return transaction.db.dialect.functionProvider.insert(isIgnore, table, values.firstOrNull()?.map { it.first }.orEmpty(), sql, sqlComment, transaction)
     }
 
     override fun arguments() = listOfNotNull(super.arguments().flatten().takeIf { data.isNotEmpty() })

@@ -13,6 +13,7 @@ internal object DefaultValueMarker {
 }
 
 abstract class Statement<out T>(val type: StatementType, val targets: List<Table>) {
+    var sqlComment: String? = null
 
     abstract fun PreparedStatementApi.executeInternal(transaction: Transaction): T?
 

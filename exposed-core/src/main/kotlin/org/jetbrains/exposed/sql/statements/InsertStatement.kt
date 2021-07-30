@@ -104,7 +104,7 @@ open class InsertStatement<Key : Any>(val table: Table, val isIgnore: Boolean = 
             }
             toString()
         }
-        return transaction.db.dialect.functionProvider.insert(isIgnore, table, values.map { it.first }, sql, transaction)
+        return transaction.db.dialect.functionProvider.insert(isIgnore, table, values.map { it.first }, sql, sqlComment, transaction)
     }
 
     protected open fun PreparedStatementApi.execInsertFunction(): Pair<Int, ResultSet?> {
